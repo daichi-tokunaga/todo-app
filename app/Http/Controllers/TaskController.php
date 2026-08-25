@@ -1,28 +1,20 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Http\Controllers;
 
+use App\Http\Requests\TaskRequest;
 use App\Models\Task;
-use Illuminate\Http\Request;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\View\View;
 
 class TaskController extends Controller
 {
     /**
-     * バリデーションルールとエラーメッセージ（追加・編集で共通）
-     */
-    private array $rules = [
-        'name' => 'required|max:100',
-    ];
-
-    private array $messages = [
-        'name.required' => 'タスク名を入力してください。',
-        'name.max'      => 'タスク名は100文字以内で入力してください。',
-    ];
-
-    /**
      * GET /tasks  一覧表示
      */
-    public function index()
+    public function index(): View
     {
         $tasks = Task::where('status', false)
             ->orderBy('created_at', 'desc')
@@ -38,12 +30,10 @@ class TaskController extends Controller
     /**
      * POST /tasks  新規登録
      */
-    public function store(Request $request)
+    public function store(TaskRequest $request): RedirectResponse
     {
-        $validated = $request->validate($this->rules, $this->messages);
-
         Task::create([
-            'name'   => $validated['name'],
+            'name'   => $request->validated('name'),
             'status' => false,
         ]);
 
@@ -53,24 +43,19 @@ class TaskController extends Controller
     }
 
     /**
-     * GET /tasks/{id}/edit  編集フォーム表示
+     * GET /tasks/{task}/edit  編集フォーム表示
      */
-    public function edit($id)
+    public function edit(Task $task): View
     {
-        $task = Task::findOrFail($id);
-
         return view('tasks.edit', compact('task'));
     }
 
     /**
-     * PUT /tasks/{id}  編集内容の保存
+     * PUT /tasks/{task}  編集内容の保存
      */
-    public function update(Request $request, $id)
+    public function update(TaskRequest $request, Task $task): RedirectResponse
     {
-        $validated = $request->validate($this->rules, $this->messages);
-
-        $task = Task::findOrFail($id);
-        $task->name = $validated['name'];
+        $task->name = $request->validated('name');
         $task->save();
 
         return redirect()
@@ -79,11 +64,10 @@ class TaskController extends Controller
     }
 
     /**
-     * PATCH /tasks/{id}/complete  完了にする
+     * PATCH /tasks/{task}/complete  完了にする
      */
-    public function complete($id)
+    public function complete(Task $task): RedirectResponse
     {
-        $task = Task::findOrFail($id);
         $task->status = true;
         $task->save();
 
@@ -93,11 +77,10 @@ class TaskController extends Controller
     }
 
     /**
-     * DELETE /tasks/{id}  削除
+     * DELETE /tasks/{task}  削除
      */
-    public function destroy($id)
+    public function destroy(Task $task): RedirectResponse
     {
-        $task = Task::findOrFail($id);
         $task->delete();
 
         return redirect()
