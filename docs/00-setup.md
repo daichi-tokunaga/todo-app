@@ -2,6 +2,14 @@
 
 **目安：30 分**
 
+> **2 回目以降の人へ**
+> 手順だけ知りたい場合は [README のセットアップ手順](../README.md#セットアップ手順クローンから起動まで) に
+> コピペ用のコマンドがまとまっています。この章は「その手順が何をしているのか」の解説です。
+>
+> **この教室の PC はシャットダウンすると中身が消えます。**
+> 授業のたびにこの手順を最初からやり直すことになるので、
+> 何をやっているのかを 1 回目にちゃんと理解しておくと、2 回目以降が速くなります。
+
 ## この章のゴール
 
 - ブラウザに Laravel の初期画面が表示される
@@ -15,9 +23,9 @@
 
 ## Step 0-1　必要なソフトを確認する
 
-ターミナル（Windows は PowerShell、Mac は ターミナル.app）で次を 1 行ずつ実行してください。
+PowerShell（スタートメニューで「PowerShell」と検索）を開き、次を 1 行ずつ実行してください。
 
-```bash
+```powershell
 php -v
 composer -V
 git --version
@@ -26,20 +34,25 @@ git --version
 3 つともバージョンが表示されれば OK です。
 `php -v` が `8.0.2` 未満、または「そんなコマンドはない」と言われた場合は講師に声をかけてください。
 
-> **Windows / XAMPP の人へ**
-> `php -v` が動かない場合、環境変数 PATH に `C:\xampp\php` が入っていません。
-> XAMPP Control Panel の「Shell」ボタンから開いた黒い画面なら、そのまま php が使えます。
+> **`php -v` が動かないとき**
+> 環境変数 PATH に `C:\xampp\php` が入っていません。
+> XAMPP Control Panel の右にある **Shell** ボタンから開いた黒い画面なら、そのまま `php` が使えます。
 
 ---
 
 ## Step 0-2　リポジトリを取得する
 
-配布された URL を使ってクローンします（すでにフォルダを渡されている人はこの手順は不要です）。
+配布された URL を使ってクローンします。
 
-```bash
+```powershell
+cd $HOME\Documents
 git clone <配布されたリポジトリのURL> todo-app
 cd todo-app
 ```
+
+> **2 回目以降で、前回の続きからやる人**
+> 配布リポジトリではなく、**前回 push した自分のリポジトリ** をクローンしてください。
+> USB にコピーして帰った人は、そのフォルダを Documents に戻せば OK です。
 
 **以降のコマンドは、すべてこの `todo-app` フォルダの中で実行します。**
 
@@ -50,7 +63,7 @@ cd todo-app
 Laravel 本体は `vendor/` フォルダに入りますが、これは Git に含まれていません。
 次のコマンドでダウンロードします（3〜5 分かかります）。
 
-```bash
+```powershell
 composer install
 ```
 
@@ -63,21 +76,13 @@ composer install
 `.env` はデータベースの接続先など「環境ごとに違う設定」を書くファイルです。
 **セキュリティ上の理由から Git には含まれていません**ので、自分で作ります。
 
-**Windows（PowerShell）**
-
 ```powershell
 Copy-Item .env.example .env
 ```
 
-**Mac / Linux**
-
-```bash
-cp .env.example .env
-```
-
 続いて、このアプリ専用の暗号化キーを生成します。
 
-```bash
+```powershell
 php artisan key:generate
 ```
 
@@ -87,7 +92,9 @@ php artisan key:generate
 
 ## Step 0-5　MySQL を起動してデータベースを作る
 
-XAMPP Control Panel（Mac の人は MAMP）を開いて、**MySQL の Start** を押します。
+XAMPP Control Panel を開いて、**MySQL の行の Start** を押します。
+「Running」と緑色になれば起動しています。
+
 ※ Apache は使いません（Laravel には開発用サーバーが付いているため）。
 
 次に、データベースを 1 つ作ります。方法はどちらでも構いません。
@@ -102,9 +109,14 @@ XAMPP Control Panel（Mac の人は MAMP）を開いて、**MySQL の Start** �
 
 **方法 B：コマンド**
 
-```bash
-mysql -u root -e "CREATE DATABASE todo_app DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;"
+```powershell
+C:\xampp\mysql\bin\mysql.exe -u root -e "CREATE DATABASE IF NOT EXISTS todo_app DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;"
 ```
+
+> **この PC はシャットダウンすると中身が消えます。**
+> つまり、**このデータベースも毎回作り直しになります。**
+> 「昨日作ったのに `Unknown database 'todo_app'` と言われる」ときは、
+> この Step をやり忘れていないか確認してください。
 
 ---
 
@@ -121,8 +133,8 @@ DB_USERNAME=root
 DB_PASSWORD=
 ```
 
-- **XAMPP を使っている人**：上の状態のままで OK（root にパスワードなし）
-- **MAMP を使っている人**：`DB_PORT=8889` と `DB_PASSWORD=root` に書き換えてください
+XAMPP の初期設定では、ユーザーが `root`、パスワードなしです。
+**上の状態のまま、書き換える必要はありません。**
 
 > `.env` を書き換えたのに反映されないときは `php artisan config:clear` を実行してください。
 
@@ -130,7 +142,7 @@ DB_PASSWORD=
 
 ## Step 0-7　接続できているか確かめる
 
-```bash
+```powershell
 php artisan migrate
 ```
 
@@ -152,7 +164,7 @@ phpMyAdmin で `todo_app` を開くと、`users` などのテーブルができ�
 
 ## Step 0-8　サーバーを起動する
 
-```bash
+```powershell
 php artisan serve
 ```
 
@@ -189,7 +201,7 @@ Laravel の初期設定は世界標準時（UTC）です。このままだと登
 
 `php artisan tinker` は、アプリの中身を 1 行ずつ試せる対話モードです。
 
-```bash
+```powershell
 php artisan tinker
 ```
 
@@ -212,7 +224,7 @@ exit
 
 ## 自己採点テストを触ってみる
 
-```bash
+```powershell
 php artisan test
 ```
 
@@ -224,13 +236,42 @@ php artisan test
 
 ---
 
+## ⚠️ 帰る前に必ずやること
+
+**この PC は電源を切るとデータが消えます。書いたコードも全部消えます。**
+
+授業の終わりに、必ずどちらかをやってください。
+
+**方法 A：自分の GitHub リポジトリに push する（おすすめ）**
+
+```powershell
+git add .
+git commit -m "第0章まで完了"
+git remote add mine <自分のリポジトリのURL>
+git push mine main
+```
+
+2 回目以降は `git push mine main` だけで済みます。
+次回は **自分のリポジトリ** をクローンすれば続きから始められます。
+
+**方法 B：フォルダごと USB メモリやクラウドにコピーする**
+
+`todo-app` フォルダをまるごとコピーします。
+`vendor` フォルダはとても大きいので、消してからコピーしても構いません
+（次回 `composer install` すれば元に戻ります）。
+
+---
+
 ## この章のチェックリスト
 
+- [ ] XAMPP で MySQL が Running になっている
 - [ ] `composer install` が成功した
 - [ ] `.env` があり、`APP_KEY` が入っている
+- [ ] `todo_app` データベースを作った
 - [ ] `php artisan migrate` が成功した
 - [ ] ブラウザに Laravel の初期画面が出た
 - [ ] `config/app.php` のタイムゾーンを `Asia/Tokyo` にした
+- [ ] 帰る前の保存方法（A か B）を決めた
 
 つまずいたら [困ったときは](troubleshooting.md) を見てください。
 

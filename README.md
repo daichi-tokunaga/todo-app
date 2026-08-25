@@ -15,9 +15,121 @@
 
 ---
 
+## セットアップ手順（クローンから起動まで）
+
+> **⚠️ この教室の PC は、シャットダウンすると中身が消えます。**
+> そのため、**授業のたびにこの手順を最初からやり直してください。**
+> 詳しい説明は [docs/00-setup.md](docs/00-setup.md) にあります。ここは手順だけです。
+
+### 1. XAMPP の MySQL を起動する
+
+XAMPP Control Panel を開き、**MySQL の行の「Start」** を押します。
+「Running」と緑色になれば OK です。（Apache は使いません）
+
+### 2. リポジトリをクローンする
+
+```powershell
+cd $HOME\Documents
+git clone <配布されたリポジトリのURL> todo-app
+cd todo-app
+```
+
+**これ以降のコマンドは、すべて `todo-app` フォルダの中で実行します。**
+
+### 3. ライブラリをインストールする（3〜5 分）
+
+```powershell
+composer install
+```
+
+### 4. `.env` を作って、アプリのキーを生成する
+
+```powershell
+Copy-Item .env.example .env
+php artisan key:generate
+```
+
+### 5. データベースを作る
+
+```powershell
+C:\xampp\mysql\bin\mysql.exe -u root -e "CREATE DATABASE IF NOT EXISTS todo_app DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;"
+```
+
+> phpMyAdmin（XAMPP Control Panel の MySQL 行にある「Admin」）から
+> 手で作っても構いません。データベース名は `todo_app`、照合順序は `utf8mb4_unicode_ci` です。
+
+### 6. テーブルを作る
+
+```powershell
+php artisan migrate
+```
+
+> 第 3 章まで進んでいる人は、ダミーデータも入れておくと確認が楽です。
+> ```powershell
+> php artisan migrate:fresh --seed
+> ```
+
+### 7. サーバーを起動する
+
+```powershell
+php artisan serve
+```
+
+ブラウザで **http://127.0.0.1:8000** を開きます。
+
+> **このターミナルは開いたままにしておきます。** 止めるときは `Ctrl + C`。
+> artisan コマンドを打ちたいときは、**別のターミナルをもう 1 つ開いて** そちらで実行してください。
+
+---
+
+### まとめてコピペする用（2 回目以降の人向け）
+
+XAMPP で MySQL を起動したあと、以下をターミナルに貼り付ければ 7 まで一気に進みます。
+`<配布されたリポジトリのURL>` の部分だけ書き換えてください。
+
+```powershell
+cd $HOME\Documents
+git clone <配布されたリポジトリのURL> todo-app
+cd todo-app
+composer install
+Copy-Item .env.example .env
+php artisan key:generate
+C:\xampp\mysql\bin\mysql.exe -u root -e "CREATE DATABASE IF NOT EXISTS todo_app DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;"
+php artisan migrate
+php artisan serve
+```
+
+うまくいかないときは [docs/troubleshooting.md](docs/troubleshooting.md) を見てください。
+
+---
+
+## ⚠️ 授業の終わりに、必ず作業を保存すること
+
+**この PC は電源を切るとデータが消えます。書いたコードもすべて消えます。**
+帰る前に、必ず次のどちらかをやってください。
+
+**方法 A：自分の GitHub リポジトリに push する（おすすめ）**
+
+```powershell
+git add .
+git commit -m "第5章まで完了"
+git remote add mine <自分のリポジトリのURL>
+git push mine main
+```
+
+次回は、配布リポジトリではなく **自分のリポジトリ** をクローンすれば続きから始められます。
+
+**方法 B：フォルダごと USB メモリやクラウドにコピーする**
+
+`todo-app` フォルダをまるごとコピーします。
+`vendor` フォルダは大きいので、消してからコピーしても構いません
+（次回 `composer install` すれば元に戻ります）。
+
+---
+
 ## 進め方
 
-1. まず [docs/00-setup.md](docs/00-setup.md) で環境を動かす
+1. 上の **セットアップ手順** で環境を動かす（詳しい解説は [docs/00-setup.md](docs/00-setup.md)）
 2. あとは番号順に 1 章ずつ進める
 3. 各章の最後にある **「動作確認」** と **「演習」** を必ずやる
 
@@ -57,7 +169,7 @@
 
 このリポジトリには、章ごとの合格判定テストが入っています。
 
-```bash
+```powershell
 php artisan test
 ```
 
@@ -67,7 +179,7 @@ php artisan test
 
 特定の章だけ確認したいとき：
 
-```bash
+```powershell
 php artisan test --filter=ch04
 ```
 
@@ -77,9 +189,14 @@ php artisan test --filter=ch04
 
 ## この教材の前提
 
-- PHP 8.0.2 以上（XAMPP / MAMP に入っている PHP で OK）
+- Windows
+- PHP 8.0.2 以上（XAMPP に入っている PHP を使います）
 - Composer
-- MySQL（XAMPP / MAMP の MySQL）
+- MySQL（XAMPP の MySQL）
+- Git
 - **Node.js は使いません。** CSS は `public/css/app.css` を最初から用意してあります
+
+`php -v` が動かない場合は、環境変数 PATH に `C:\xampp\php` が入っていません。
+XAMPP Control Panel の右にある **Shell** ボタンから開いた黒い画面なら、そのまま `php` が使えます。
 
 参考記事：[Laravelで簡単なTodoアプリを作ってみる（B-Risk）](https://b-risk.jp/blog/2022/08/laravel/)

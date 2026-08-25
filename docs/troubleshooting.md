@@ -31,16 +31,38 @@ MySQL が起動していません。XAMPP Control Panel で **MySQL の Start** 
 
 ### `SQLSTATE[HY000] [1045] Access denied for user 'root'@'localhost'`
 
-`.env` のユーザー名・パスワードが違います。
+`.env` のユーザー名・パスワードが違います。XAMPP では次が正しい状態です。
 
-- XAMPP：`DB_USERNAME=root` / `DB_PASSWORD=`（空）
-- MAMP：`DB_USERNAME=root` / `DB_PASSWORD=root` / `DB_PORT=8889`
+```env
+DB_USERNAME=root
+DB_PASSWORD=
+```
 
 直したら `php artisan config:clear` を実行してください。
 
 ### `SQLSTATE[HY000] [1049] Unknown database 'todo_app'`
 
-データベースを作っていません。[第 0 章 Step 0-5](00-setup.md) をやり直してください。
+データベースを作っていません。
+
+**この PC は電源を切るとデータが消えるので、授業のたびに作り直しが必要です。**
+「前回は動いたのに」というときは、たいていこれです。
+
+```powershell
+C:\xampp\mysql\bin\mysql.exe -u root -e "CREATE DATABASE IF NOT EXISTS todo_app DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;"
+php artisan migrate
+```
+
+詳しくは [第 0 章 Step 0-5](00-setup.md) を見てください。
+
+### テーブルはあるのに、前回入れたタスクが消えている
+
+**正常です。** この PC はシャットダウンでデータベースの中身も消えます。
+
+ダミーデータを入れ直すには（第 3 章まで進んでいる人）：
+
+```powershell
+php artisan migrate:fresh --seed
+```
 
 ### `could not find driver`
 
