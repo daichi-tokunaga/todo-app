@@ -357,3 +357,51 @@ public function destroyCompleted()
 
 `session('type', 'success')` の第 2 引数はデフォルト値です。
 `type` を渡さなかった場合は `alert-success` になります。
+
+---
+
+## 第 11 章
+
+この章の演習は「壊してみて、エラーを読んで、戻す」ものが中心です。
+出るはずのエラーを載せておきます。
+
+### 演習 11-A　`complete()` の戻り値の型を `: View` にする
+
+```
+App\Http\Controllers\TaskController::complete(): Return value must be of type
+Illuminate\View\View, Illuminate\Http\RedirectResponse returned
+```
+
+戻り値の型と、実際に `return` しているものが食い違っています。
+**書いた瞬間ではなく、そのメソッドが実行された瞬間**にエラーになる点に注意してください
+（だから静的解析ツールを使う価値があります → Step 11-6）。
+
+### 演習 11-B　ルートの `{task}` を `{id}` に戻す
+
+```
+App\Http\Controllers\TaskController::complete(): Argument #1 ($task) must be of type
+App\Models\Task, string given
+```
+
+ルートのパラメータ名が `{id}` なのに引数名が `$task` なので、
+Laravel はモデルを探しに行かず、URL の文字列 `"3"` をそのまま渡してしまいます。
+
+**ルートの `{...}` と引数名は必ず揃える。** これがルートモデルバインディングの唯一のルールです。
+
+### 演習 11-C　`authorize()` を `false` にする
+
+```
+403 | THIS ACTION IS UNAUTHORIZED.
+```
+
+`authorize()` は「このリクエストを実行してよいか」を返すメソッドです。
+`make:request` の初期値が `false` なので、**変え忘れると必ずここで詰まります**。
+
+本来は「このタスクの持ち主が自分かどうか」といった判定を書く場所です。
+
+```php
+public function authorize(): bool
+{
+    return $this->user()->id === $this->route('task')->user_id;   // 例
+}
+```

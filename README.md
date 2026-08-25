@@ -42,7 +42,8 @@
 | [08](docs/08-edit.md) | 編集する（Update） | 編集フォーム / PUT |
 | [09](docs/09-delete.md) | 削除する（Delete） | DELETE / 確認ダイアログ |
 | [10](docs/10-finishing.md) | 仕上げ | フラッシュメッセージ / 404 |
-| [11](docs/11-advanced.md) | 発展課題 | 自力で機能追加 |
+| [11](docs/11-refactoring-types.md) | 型を付けて堅くする | 型宣言 / FormRequest / ルートモデルバインディング |
+| [12](docs/12-advanced.md) | 発展課題 | 自力で機能追加 |
 
 補助資料
 

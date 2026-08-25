@@ -202,6 +202,58 @@ php artisan migrate:fresh --seed
 
 ---
 
+## 型まわり（第 11 章）
+
+### `strict_types declaration must be the very first statement in the script`
+
+`declare(strict_types=1);` は `<?php` の **直後** に書きます。
+コメントや `namespace` より後ろに置くと、この致命的エラーになります。
+
+```php
+<?php
+
+declare(strict_types=1);   // ← ここ
+
+namespace App\Http\Controllers;
+```
+
+### `Return value must be of type X, Y returned`
+
+メソッドに書いた戻り値の型と、実際に `return` しているものが違います。
+
+| 返しているもの | 正しい型 |
+| --- | --- |
+| `view(...)` | `View` |
+| `redirect()->...` | `RedirectResponse` |
+
+### `Argument #1 ($task) must be of type App\Models\Task, string given`
+
+ルートモデルバインディングが効いていません。
+**ルート定義の `{...}` の名前と、引数名を一致させてください。**
+
+```php
+Route::patch('/tasks/{task}/complete', ...);   // {task}
+public function complete(Task $task)           // $task
+```
+
+### `403 | THIS ACTION IS UNAUTHORIZED.`
+
+FormRequest の `authorize()` が `false` のままです。`true` に変えてください。
+`php artisan make:request` の初期値が `false` なので、非常によくある詰まりどころです。
+
+### `Type of App\Models\Task::$fillable must not be defined`
+
+`protected array $fillable` のように型を付けてしまっています。
+親の `Model` が型なしで宣言しているため、子クラスで型を足すことは PHP の仕様上できません。
+`protected $fillable` に戻し、型は PHPDoc（`@var array<int, string>`）で伝えてください。
+
+### `Class "App\Http\Requests\TaskRequest" not found`
+
+`php artisan make:request TaskRequest` を実行したか、
+コントローラに `use App\Http\Requests\TaskRequest;` を書いたか確認してください。
+
+---
+
 ## テストまわり
 
 ### 全部失敗する

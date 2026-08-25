@@ -275,6 +275,62 @@ $table->foreignId('category_id')->constrained();
 
 ---
 
+## 型宣言（第 11 章）
+
+```php
+<?php
+
+declare(strict_types=1);          // ← 必ず <?php の直後
+
+namespace App\Http\Controllers;
+
+use App\Http\Requests\TaskRequest;
+use App\Models\Task;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\View\View;
+```
+
+| 返すもの | 戻り値の型 | `use` |
+| --- | --- | --- |
+| `view(...)` | `View` | `Illuminate\View\View` |
+| `redirect()->...` | `RedirectResponse` | `Illuminate\Http\RedirectResponse` |
+| `response()->json(...)` | `JsonResponse` | `Illuminate\Http\JsonResponse` |
+| `$this->belongsTo(...)` | `BelongsTo` | `Illuminate\Database\Eloquent\Relations\BelongsTo` |
+| `$this->hasMany(...)` | `HasMany` | `Illuminate\Database\Eloquent\Relations\HasMany` |
+| `Task::...->get()` | `Collection` | `Illuminate\Database\Eloquent\Collection` |
+
+### ルートモデルバインディング
+
+```php
+// routes/web.php  ← {task} の名前と…
+Route::patch('/tasks/{task}/complete', [TaskController::class, 'complete']);
+
+// コントローラ    ← $task の名前を一致させる
+public function complete(Task $task): RedirectResponse
+```
+
+見つからなければ自動で 404。`findOrFail()` は不要になります。
+
+### PHPDoc（実行時には効かないが、IDE と静的解析が読む）
+
+```php
+/**
+ * @property int    $id
+ * @property string $name
+ * @property bool   $status
+ */
+class Task extends Model
+{
+    /** @var array<int, string> */
+    protected $fillable = ['name', 'status'];
+}
+```
+
+> `protected array $fillable` のように **型は付けられません**。
+> 親の `Model` が型なしで宣言しているためです（PHP の制約）。
+
+---
+
 ## HTTP メソッドの使い分け
 
 | メソッド | 用途 | フォームで書けるか |

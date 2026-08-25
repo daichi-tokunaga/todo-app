@@ -1,14 +1,18 @@
-# 第 11 章　発展課題
+# 第 12 章　発展課題
 
 **目安：好きなだけ**
 
-第 10 章までで基本の CRUD は完成しました。
+第 11 章までで、動くアプリと型の付いたコードが揃いました。
 ここから先は **ヒントだけ** です。完成コードは載せません。
 公式ドキュメントを読みながら自力で実装してみてください。
 
 📖 [Laravel 9.x 日本語ドキュメント](https://readouble.com/laravel/9.x/ja/)
 
 難易度の目安：★☆☆ 易しい　★★☆ ふつう　★★★ 難しい
+
+> **ルール**：ここで追加するメソッドにも、
+> **必ず引数と戻り値の型を書いてください**（第 11 章でやったとおり）。
+> バリデーションは `TaskRequest` に足すか、新しい FormRequest を作ります。
 
 ---
 
@@ -49,8 +53,8 @@ public function down()
 ```
 
 - `Schema::create` ではなく **`Schema::table`**
-- `$fillable` と `$casts` にも `due_date` を足すのを忘れずに
-- バリデーションは `'due_date' => 'nullable|date'`
+- `$fillable` と `$casts` にも `due_date` を足すのを忘れずに（`@property` も）
+- バリデーションは `TaskRequest::rules()` に `'due_date' => 'nullable|date'` を追加
 - 期限切れの判定は Blade で `@if ($task->due_date && $task->due_date->isPast())`
 
 ---
@@ -71,7 +75,7 @@ public function down()
 ```
 
 ```php
-public function index(Request $request)
+public function index(Request $request): View
 {
     $query = Task::where('status', false);
 
@@ -121,84 +125,9 @@ public function boot()
 
 ---
 
-## 課題 4　FormRequest でバリデーションを分離する　★★☆
+## 課題 4　バリデーションメッセージを日本語ファイルにまとめる　★★☆
 
-コントローラからバリデーションを追い出して、専用クラスにします。
-
-### ヒント
-
-```bash
-php artisan make:request StoreTaskRequest
-```
-
-```php
-// app/Http/Requests/StoreTaskRequest.php
-public function authorize()
-{
-    return true;   // ← 初期値は false なので必ず true に変える
-}
-
-public function rules()
-{
-    return ['name' => 'required|max:100'];
-}
-
-public function messages()
-{
-    return [
-        'name.required' => 'タスク名を入力してください。',
-        'name.max'      => 'タスク名は100文字以内で入力してください。',
-    ];
-}
-```
-
-```php
-// コントローラ側
-public function store(StoreTaskRequest $request)
-{
-    $validated = $request->validated();
-    // ...
-}
-```
-
-型指定を変えるだけで、**メソッドに入る前に自動で検証されます**。
-`authorize()` を `false` のままにすると 403 エラーになるので注意。
-
----
-
-## 課題 5　ルートモデルバインディング　★★☆
-
-`Task::findOrFail($id)` を書かなくて済むようにします。
-
-### ヒント
-
-```php
-// Before
-public function edit($id)
-{
-    $task = Task::findOrFail($id);
-    return view('tasks.edit', compact('task'));
-}
-
-// After
-public function edit(Task $task)
-{
-    return view('tasks.edit', compact('task'));
-}
-```
-
-引数の型に `Task` を書くだけで、Laravel が URL の `{task}` から自動で探してくれます
-（見つからなければ自動で 404）。
-
-**注意**：ルート定義の `{...}` の名前と、引数名を一致させる必要があります。
-`Route::resource` が作るルートは `{task}` なのでそのまま動きますが、
-自分で書いた `tasks/{id}/complete` は `tasks/{task}/complete` に直す必要があります。
-
----
-
-## 課題 6　バリデーションメッセージを日本語ファイルにまとめる　★★☆
-
-いまはコントローラにメッセージをベタ書きしていますが、
+いまは `TaskRequest` の `messages()` にベタ書きしていますが、
 本来は言語ファイルにまとめます。
 
 ### ヒント
@@ -220,11 +149,11 @@ return [
 ];
 ```
 
-これができたら、コントローラの `$this->messages` は削除できます。
+これができたら、`TaskRequest` の `messages()` メソッドは削除できます。
 
 ---
 
-## 課題 7　ソフトデリート（論理削除）　★★☆
+## 課題 5　ソフトデリート（論理削除）　★★☆
 
 「削除」しても DB からは消さず、隠すだけにします。誤削除に強くなります。
 
@@ -240,7 +169,7 @@ return [
 
 ---
 
-## 課題 8　カテゴリを付ける（リレーション）　★★★
+## 課題 6　カテゴリを付ける（リレーション）　★★★
 
 タスクを「仕事」「プライベート」などのカテゴリで分類します。
 
@@ -256,13 +185,17 @@ $table->foreignId('category_id')->nullable()->constrained()->nullOnDelete();
 
 ```php
 // app/Models/Task.php
-public function category()
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+
+public function category(): BelongsTo
 {
     return $this->belongsTo(Category::class);
 }
 
 // app/Models/Category.php
-public function tasks()
+use Illuminate\Database\Eloquent\Relations\HasMany;
+
+public function tasks(): HasMany
 {
     return $this->hasMany(Task::class);
 }
@@ -277,7 +210,7 @@ public function tasks()
 
 ---
 
-## 課題 9　自分でテストを書く　★★★
+## 課題 7　自分でテストを書く　★★★
 
 `tests/Feature/TodoAppTest.php` を参考に、自分の追加機能のテストを書きます。
 
@@ -298,7 +231,7 @@ php artisan make:test MyFeatureTest
 
 ---
 
-## 課題 10　ログイン機能　★★★
+## 課題 8　ログイン機能　★★★
 
 「自分のタスクだけ見える」ようにします。
 
